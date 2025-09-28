@@ -10,12 +10,11 @@ from tqdm import tqdm
 from constants import BASE_DIR, MAIN_DOC_URL, WHATS_NEW_URL, DOWNLOADS_URL
 from configs import configure_argument_parser
 
-def whats_new():
+def whats_new(session):
     # Вместо константы WHATS_NEW_URL, используйте переменную whats_new_url.
     # Привязка к MAIN_DOC_URL через urljoin.
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
 
-    session = requests_cache.CachedSession()
     response = session.get(whats_new_url)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, features='lxml')
@@ -57,8 +56,7 @@ def whats_new():
     return results
 
 
-def latest_versions():
-    session = requests_cache.CachedSession()
+def latest_versions(session):
     response = session.get(MAIN_DOC_URL)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, 'lxml')
@@ -96,12 +94,11 @@ def latest_versions():
     return results
 
 
-def download():
+def download(session):
     # Вместо константы DOWNLOADS_URL, используйте переменную downloads_url.
     # Привязка к MAIN_DOC_URL через urljoin.
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
 
-    session = requests_cache.CachedSession()
     response = session.get(downloads_url)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, features='lxml')
@@ -149,11 +146,16 @@ def main():
     arg_parser = configure_argument_parser(MODE_TO_FUNCTION.keys())
     # Считывание аргументов из командной строки.
     args = arg_parser.parse_args()
-    # Получение из аргументов командной строки нужного режима работы.
-    parser_mode = args.mode
-    # Поиск и вызов нужной функции по ключу словаря.
-    MODE_TO_FUNCTION[parser_mode]()
 
+    session = requests_cache.CachedSession()
+    # Если был передан ключ '--clear-cache', то args.clear_cache == True.
+    if args.clear_cache:
+        # Очистка кеша.
+        session.cache.clear()
+
+    parser_mode = args.mode
+    # С вызовом функции передаётся и сессия.
+    MODE_TO_FUNCTION[parser_mode](session)
 
 if __name__ == '__main__':
     main()

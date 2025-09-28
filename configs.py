@@ -7,4 +7,10 @@ def configure_argument_parser(available_modes):
         choices=available_modes,
         help='Режимы работы парсера'
     )
+    parser.add_argument(
+        '-c',
+        '-clear-cache',
+        action='store_true',
+        help='Очистка кэша'
+    )
     return parser
