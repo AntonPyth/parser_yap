@@ -1,5 +1,6 @@
 import argparse
 
+
 def configure_argument_parser(available_modes):
     parser = argparse.ArgumentParser(description='Парсер документации Python')
     parser.add_argument(
@@ -9,8 +10,8 @@ def configure_argument_parser(available_modes):
     )
     parser.add_argument(
         '-c',
-        '-clear-cache',
+        '--clear-cache',
         action='store_true',
-        help='Очистка кэша'
+        help='Очистка кеша'
     )
     return parser

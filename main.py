@@ -1,4 +1,3 @@
-# test.py
 import re
 from urllib.parse import urljoin
 from pathlib import Path
@@ -7,14 +6,12 @@ import requests_cache
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-from constants import BASE_DIR, MAIN_DOC_URL, WHATS_NEW_URL, DOWNLOADS_URL
+from constants import BASE_DIR, MAIN_DOC_URL
 from configs import configure_argument_parser
 
-def whats_new(session):
-    # Вместо константы WHATS_NEW_URL, используйте переменную whats_new_url.
-    # Привязка к MAIN_DOC_URL через urljoin.
-    whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
 
+def whats_new(session):
+    whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
     response = session.get(whats_new_url)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, features='lxml')
@@ -79,7 +76,6 @@ def latest_versions(session):
     pattern = r'Python (?P<version>\d\.\d+) \((?P<status>.*)\)'
     for a_tag in a_tags:
         link = a_tag.get('href', '')
-        # Приводим ссылку к абсолютной, чтобы было удобно использовать вне контекста
         absolute_link = urljoin(MAIN_DOC_URL, link)
         text_match = re.search(pattern, a_tag.get_text())
         if text_match is not None:
@@ -95,18 +91,16 @@ def latest_versions(session):
 
 
 def download(session):
-    # Вместо константы DOWNLOADS_URL, используйте переменную downloads_url.
-    # Привязка к MAIN_DOC_URL через urljoin.
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
-
     response = session.get(downloads_url)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, features='lxml')
-
     main_tag = soup.find('div', {'role': 'main'})
     if main_tag is None:
-        raise RuntimeError('Главный блок (role=main) не найден на странице загрузок')
-
+        raise RuntimeError(
+            'Главный блок (role=main) не найден на странице '
+            'загрузок'
+        )
     table_tag = main_tag.find('table', {'class': 'docutils'})
     if table_tag is None:
         raise RuntimeError('Таблица с загрузками не найдена')
@@ -134,28 +128,23 @@ def download(session):
 
     return archive_path
 
+
 MODE_TO_FUNCTION = {
     'whats-new': whats_new,
     'latest-versions': latest_versions,
     'download': download,
 }
 
-def main():    
-    # Конфигурация парсера аргументов командной строки —
-    # передача в функцию допустимых вариантов выбора.
+
+def main():
     arg_parser = configure_argument_parser(MODE_TO_FUNCTION.keys())
-    # Считывание аргументов из командной строки.
     args = arg_parser.parse_args()
-
     session = requests_cache.CachedSession()
-    # Если был передан ключ '--clear-cache', то args.clear_cache == True.
     if args.clear_cache:
-        # Очистка кеша.
         session.cache.clear()
-
     parser_mode = args.mode
-    # С вызовом функции передаётся и сессия.
     MODE_TO_FUNCTION[parser_mode](session)
+
 
 if __name__ == '__main__':
     main()
