@@ -1,13 +1,14 @@
 import re
 from urllib.parse import urljoin
 from pathlib import Path
+import logging
 
 import requests_cache
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from constants import BASE_DIR, MAIN_DOC_URL, DATETIME_FORMAT
-from configs import configure_argument_parser
+from configs import configure_argument_parser, configure_logging
 from outputs import control_output
 
 
@@ -125,6 +126,7 @@ def download(session):
     file_resp.raise_for_status()
     with open(archive_path, 'wb') as f:
         f.write(file_resp.content)
+    logging.info(f'Архив был загружен и сохранён: {archive_path}') 
 
     return archive_path
 
@@ -137,18 +139,26 @@ MODE_TO_FUNCTION = {
 
 
 def main():
+    configure_logging()
+    # Отмечаем в логах момент запуска программы.
+    logging.info('Парсер запущен!')
+
     arg_parser = configure_argument_parser(MODE_TO_FUNCTION.keys())
     args = arg_parser.parse_args()
-    session = requests_cache.CachedSession()
+    # Логируем переданные аргументы командной строки.
+    logging.info(f'Аргументы командной строки: {args}')
 
+    session = requests_cache.CachedSession()
     if args.clear_cache:
         session.cache.clear()
+
     parser_mode = args.mode
     results = MODE_TO_FUNCTION[parser_mode](session)
 
     if results is not None:
-        # передаём их в функцию вывода вместе с аргументами командной строки.
         control_output(results, args)
+    # Логируем завершение работы парсера.
+    logging.info('Парсер завершил работу.')
 
 
 if __name__ == '__main__':
