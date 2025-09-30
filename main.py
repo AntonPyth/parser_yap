@@ -28,7 +28,6 @@ def whats_new(session):
 
     sections_by_python = toctree.find_all('li', attrs={'class': 'toctree-l1'})
 
-    results = []
     for section in tqdm(sections_by_python):
         version_a_tag = section.find('a')
         if version_a_tag is None or 'href' not in version_a_tag.attrs:
@@ -48,8 +47,8 @@ def whats_new(session):
 
         results.append((version_link, h1_text, dl_text))
 
-    # Вывод результатов, как в исходнике
-    for row in results:
+    # Вывод в терминал для отладки (опционально)
+    for row in results[1:]:  # Пропускаем заголовки при печати
         print(*row)
 
     return results
@@ -74,7 +73,6 @@ def latest_versions(session):
     if not a_tags:
         raise RuntimeError('Ничего не нашлось')
 
-    results = []
     pattern = r'Python (?P<version>\d\.\d+) \((?P<status>.*)\)'
     for a_tag in a_tags:
         link = a_tag.get('href', '')
@@ -86,7 +84,7 @@ def latest_versions(session):
             version, status = a_tag.get_text(), ''
         results.append((absolute_link, version, status))
 
-    for row in results:
+    for row in results[1:]:  # Пропускаем заголовки при печати
         print(*row)
 
     return results
