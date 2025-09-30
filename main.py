@@ -6,8 +6,9 @@ import requests_cache
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-from constants import BASE_DIR, MAIN_DOC_URL
+from constants import BASE_DIR, MAIN_DOC_URL, DATETIME_FORMAT
 from configs import configure_argument_parser
+from outputs import control_output
 
 
 def whats_new(session):
@@ -15,6 +16,7 @@ def whats_new(session):
     response = session.get(whats_new_url)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, features='lxml')
+    results = [('Ссылка на статью', 'Заголовок', 'Редактор, автор')]
 
     main_section = soup.find('section', attrs={'id': 'what-s-new-in-python'})
     if main_section is None:
@@ -57,7 +59,7 @@ def latest_versions(session):
     response = session.get(MAIN_DOC_URL)
     response.encoding = 'utf-8'
     soup = BeautifulSoup(response.text, 'lxml')
-
+    results = [('Ссылка на документацию', 'Версия', 'Статус')]
     sidebar = soup.find('div', {'class': 'sphinxsidebarwrapper'})
     if sidebar is None:
         raise RuntimeError('Sidebar not found')
@@ -140,10 +142,15 @@ def main():
     arg_parser = configure_argument_parser(MODE_TO_FUNCTION.keys())
     args = arg_parser.parse_args()
     session = requests_cache.CachedSession()
+
     if args.clear_cache:
         session.cache.clear()
     parser_mode = args.mode
-    MODE_TO_FUNCTION[parser_mode](session)
+    results = MODE_TO_FUNCTION[parser_mode](session)
+
+    if results is not None:
+        # передаём их в функцию вывода вместе с аргументами командной строки.
+        control_output(results, args)
 
 
 if __name__ == '__main__':

@@ -14,4 +14,10 @@ def configure_argument_parser(available_modes):
         action='store_true',
         help='Очистка кеша'
     )
+    parser.add_argument(
+        '-o',
+        '--output',
+        choices=('pretty', 'file'),
+        help='Доп способы вывода данных'
+    )
     return parser
