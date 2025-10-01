@@ -2,7 +2,7 @@ import re
 from urllib.parse import urljoin
 from pathlib import Path
 import logging
-from utils import get_response
+from utils import get_response, find_tag
 
 import requests_cache
 from bs4 import BeautifulSoup
@@ -23,11 +23,15 @@ def whats_new(session):
     soup = BeautifulSoup(response.text, features='lxml')
     results = [('Ссылка на статью', 'Заголовок', 'Редактор, автор')]
 
-    main_section = soup.find('section', attrs={'id': 'what-s-new-in-python'})
+    main_section = find_tag(
+        soup,
+        'section',
+        attrs={'id': 'what-s-new-in-python'}
+    )
     if main_section is None:
         raise RuntimeError('Раздел "What\'s New" не найден на странице')
 
-    toctree = main_section.find('div', attrs={'class': 'toctree-wrapper'})
+    toctree = find_tag(main_section, 'div', attrs={'class': 'toctree-wrapper'})
     if toctree is None:
         raise RuntimeError('Список версий в "What\'s New" не найден')
 
@@ -45,8 +49,8 @@ def whats_new(session):
         v_resp.encoding = 'utf-8'
         v_soup = BeautifulSoup(v_resp.text, 'lxml')
 
-        h1 = v_soup.find('h1')
-        dl = v_soup.find('dl')
+        h1 = find_tag(v_soup, 'h1')
+        dl = find_tag(v_soup, 'dl')
         h1_text = h1.text.strip() if h1 else ''
         dl_text = dl.text.replace('\n', ' ').strip() if dl else ''
 
@@ -67,7 +71,7 @@ def latest_versions(session):
         return
     soup = BeautifulSoup(response.text, 'lxml')
     results = [('Ссылка на документацию', 'Версия', 'Статус')]
-    sidebar = soup.find('div', {'class': 'sphinxsidebarwrapper'})
+    sidebar = find_tag(soup, 'div', attrs={'class': 'sphinxsidebarwrapper'})
     if sidebar is None:
         raise RuntimeError('Sidebar not found')
 
@@ -106,17 +110,21 @@ def download(session):
     if response is None:
         return
     soup = BeautifulSoup(response.text, features='lxml')
-    main_tag = soup.find('div', {'role': 'main'})
+    main_tag = find_tag(soup, 'div', attrs={'role': 'main'})
     if main_tag is None:
         raise RuntimeError(
             'Главный блок (role=main) не найден на странице '
             'загрузок'
         )
-    table_tag = main_tag.find('table', {'class': 'docutils'})
+    table_tag = find_tag(main_tag, 'table', attrs={'class': 'docutils'})
     if table_tag is None:
         raise RuntimeError('Таблица с загрузками не найдена')
 
-    pdf_a4_tag = table_tag.find('a', {'href': re.compile(r'.+pdf-a4\.zip$')})
+    pdf_a4_tag = find_tag(
+        table_tag,
+        'a',
+        attrs={'href': re.compile(r'.+pdf-a4\.zip$')}
+    )
     if pdf_a4_tag is None:
         raise RuntimeError('Ссылка на pdf-a4.zip не найдена')
 
