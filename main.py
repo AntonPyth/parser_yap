@@ -126,9 +126,9 @@ def download(session):
     file_resp.raise_for_status()
     with open(archive_path, 'wb') as f:
         f.write(file_resp.content)
-    logging.info(f'Архив был загружен и сохранён: {archive_path}') 
+    logging.info(f'Архив был загружен и сохранён: {archive_path}')
 
-    return archive_path
+    return [('Скачанный файл', str(archive_path))]
 
 
 MODE_TO_FUNCTION = {
@@ -139,10 +139,10 @@ MODE_TO_FUNCTION = {
 
 
 def main():
+    # Запускаем функцию с конфигурацией логов.
     configure_logging()
     # Отмечаем в логах момент запуска программы.
     logging.info('Парсер запущен!')
-
     arg_parser = configure_argument_parser(MODE_TO_FUNCTION.keys())
     args = arg_parser.parse_args()
     # Логируем переданные аргументы командной строки.
@@ -155,7 +155,7 @@ def main():
     parser_mode = args.mode
     results = MODE_TO_FUNCTION[parser_mode](session)
 
-    if results is not None:
+    if parser_mode != 'download' and results is not None:
         control_output(results, args)
     # Логируем завершение работы парсера.
     logging.info('Парсер завершил работу.')
