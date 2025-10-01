@@ -14,7 +14,7 @@ def get_response(session, url):
         return response
     except RequestException:
         logging.exception(
-            f'Возникла ошибка при загрузке страницы {url}',
+            'Возникла ошибка при загрузке страницы %s', url,
             stack_info=True
         )
 

@@ -6,7 +6,8 @@ venv/
 env/
 results/
 *.log
+*.sqlite
+*.db
 logs/
 downloads/
 test.py
-
