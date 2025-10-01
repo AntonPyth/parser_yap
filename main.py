@@ -2,6 +2,7 @@ import re
 from urllib.parse import urljoin
 from pathlib import Path
 import logging
+from utils import get_response
 
 import requests_cache
 from bs4 import BeautifulSoup
@@ -14,8 +15,11 @@ from outputs import control_output
 
 def whats_new(session):
     whats_new_url = urljoin(MAIN_DOC_URL, 'whatsnew/')
-    response = session.get(whats_new_url)
-    response.encoding = 'utf-8'
+    # response = session.get(whats_new_url)
+    # response.encoding = 'utf-8'
+    response = get_response(session, whats_new_url)
+    if response is None:
+        return
     soup = BeautifulSoup(response.text, features='lxml')
     results = [('Ссылка на статью', 'Заголовок', 'Редактор, автор')]
 
@@ -56,8 +60,11 @@ def whats_new(session):
 
 
 def latest_versions(session):
-    response = session.get(MAIN_DOC_URL)
-    response.encoding = 'utf-8'
+    # response = session.get(MAIN_DOC_URL)
+    # response.encoding = 'utf-8'
+    response = get_response(session, MAIN_DOC_URL)
+    if response is None:
+        return
     soup = BeautifulSoup(response.text, 'lxml')
     results = [('Ссылка на документацию', 'Версия', 'Статус')]
     sidebar = soup.find('div', {'class': 'sphinxsidebarwrapper'})
@@ -93,8 +100,11 @@ def latest_versions(session):
 
 def download(session):
     downloads_url = urljoin(MAIN_DOC_URL, 'download.html')
-    response = session.get(downloads_url)
-    response.encoding = 'utf-8'
+    # response = session.get(downloads_url)
+    # response.encoding = 'utf-8'
+    response = get_response(session, downloads_url)
+    if response is None:
+        return
     soup = BeautifulSoup(response.text, features='lxml')
     main_tag = soup.find('div', {'role': 'main'})
     if main_tag is None:
